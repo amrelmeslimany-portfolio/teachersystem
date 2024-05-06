@@ -1,0 +1,306 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Lesson table
+model Lesson {
+  id           String        @id @default(uuid())
+  title        String        @db.VarChar(90)
+  description  String        @db.VarChar(255)
+  cover        String?       @db.VarChar(255)
+  goals        String        @db.VarChar(255)
+  video        String        @db.VarChar(255)
+  studentViews Views[]
+  studentLikes LessonLikes[]
+  unitId       String
+  unit         Unit          @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  pdfs         PDF[]
+  createdAt    DateTime      @default(now())
+
+  @@unique([title])
+}
+
+model LessonLikes {
+  id        String  @id @default(uuid())
+  lessonId  String
+  lesson    Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  studentId String  @unique
+  student   Student @relation(fields: [studentId], references: [id], onDelete: NoAction)
+}
+
+model Views {
+  id        String  @id @default(uuid())
+  studentId String  @unique
+  student   Student @relation(fields: [studentId], references: [id], onDelete: NoAction)
+  lessonId  String?
+  lesson    Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  noteId    String?
+  note      Note?   @relation(fields: [noteId], references: [id], onDelete: SetNull)
+}
+
+// Term table
+model Term {
+  id            String     @id @default(uuid())
+  title         String     @db.VarChar(90)
+  description   String     @db.VarChar(255)
+  startDate     DateTime   @db.Date
+  endDate       DateTime   @db.Date
+  status        TermStatus
+  finalExamDate DateTime?
+  units         Unit[]
+  note          Note[]
+  levelId       String
+  level         Level      @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@unique([title])
+}
+
+// Unit table
+model Unit {
+  id          String     @id @default(uuid())
+  title       String     @db.VarChar(90)
+  description String     @db.VarChar(255)
+  cover       String?    @db.VarChar(255)
+  goals       String     @db.VarChar(255)
+  levelId     String
+  level       Level      @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  termId      String
+  term        Term       @relation(fields: [termId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+  quizes      QuizUnit[]
+
+  @@unique([title])
+}
+
+// Level table
+model Level {
+  id          String    @id @default(uuid())
+  title       String    @db.VarChar(90)
+  description String    @db.VarChar(255)
+  cover       String?   @db.VarChar(255)
+  units       Unit[]
+  groups      Group[]
+  note        Note[]
+  quizes      Quiz[]
+  students    Student[]
+  terms       Term[]
+
+  @@unique([title])
+}
+
+// Group table
+model Group {
+  id          String    @id @default(uuid())
+  title       String    @db.VarChar(90)
+  description String    @db.VarChar(255)
+  cover       String?   @db.VarChar(255)
+  updatedAt   DateTime? @updatedAt
+  createdAt   DateTime  @default(now())
+  weekdaysId  String?
+  weekdays    Weekdays? @relation(fields: [weekdaysId], references: [id], onDelete: SetNull)
+  appointTime DateTime  @db.Time(3)
+  duration    String?
+  levelId     String
+  level       Level     @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  students    Student[]
+
+  @@unique([title])
+  @@unique([weekdaysId, appointTime])
+}
+
+// Note table
+model Note {
+  id           String   @id @default(uuid())
+  title        String   @db.VarChar(90)
+  body         String   @db.VarChar(255)
+  studentViews Views[]
+  status       Status?
+  levelId      String
+  level        Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  termId       String?
+  term         Term?    @relation(fields: [termId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([title])
+}
+
+// PDF table
+model PDF {
+  id          String   @id @default(uuid())
+  title       String   @db.VarChar(90)
+  description String   @db.VarChar(255)
+  cover       String?  @db.VarChar(255)
+  downloadUrl String   @db.VarChar(255)
+  pages       Int?
+  downloads   Int?
+  status      Status?
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([title])
+}
+
+// Question table
+model Question {
+  id               String            @id @default(uuid())
+  grade            Int
+  body             String?           @db.VarChar(255)
+  correctAnswer    String            @db.VarChar(255)
+  optionA          String?           @db.VarChar(255)
+  optionB          String?           @db.VarChar(255)
+  optionC          String?           @db.VarChar(255)
+  optionD          String?           @db.VarChar(255)
+  questionType     QuestionType      @default(Mcq)
+  quizId           String
+  quiz             Quiz              @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  studentQuestions StudentQuestion[]
+}
+
+enum QuizStatus {
+  Pending
+  InProgress
+  Finished
+}
+
+// Quiz table
+model Quiz {
+  id          String        @id @default(uuid())
+  title       String        @db.VarChar(90)
+  description String        @db.VarChar(255)
+  cover       String?       @db.VarChar(255)
+  startDate   DateTime?
+  status      QuizStatus    @default(Pending)
+  endDate     DateTime?
+  createdAt   DateTime      @default(now())
+  levelId     String
+  level       Level         @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  duration    String
+  questions   Question[]
+  units       QuizUnit[]
+  students    StudentQuiz[]
+
+  @@unique([title])
+}
+
+// QuizUnit table
+model QuizUnit {
+  unitId String
+  unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  quizId String
+  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@id([unitId, quizId])
+}
+
+// Student table
+model Student {
+  id                 String             @id @default(uuid())
+  firstname          String             @db.VarChar(40)
+  fathername         String             @db.VarChar(70)
+  birthdate          DateTime?          @db.Date
+  email              String             @unique @db.VarChar(255)
+  gender             Gender
+  picture            String?            @db.VarChar(255)
+  phonenumber        String             @db.VarChar(15)
+  father_phonenumber String             @db.VarChar(15)
+  location           String             @db.VarChar(255)
+  password           String
+  isEmailVerified    Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  groupId            String?
+  group              Group?             @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  levelId            String
+  level              Level              @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  quizes             StudentQuiz[]
+  views              Views?
+  likes              LessonLikes?
+  resetToken         ResetTokenStudent?
+}
+
+model ResetTokenStudent {
+  id         String   @id @default(uuid())
+  resetToken String
+  expired    DateTime
+  createdAt  DateTime @default(now())
+  studentId  String   @unique
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+// StudentQuestion table
+model StudentQuestion {
+  questionId    String
+  question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  studentquizId String
+  studentQuiz   StudentQuiz @relation(fields: [studentquizId], references: [id], onDelete: Cascade)
+  studentAnswer String?
+  isCorrect     Boolean?    @default(false)
+
+  @@id([questionId, studentquizId])
+}
+
+// StudentQuiz table
+model StudentQuiz {
+  id        String            @id @default(uuid())
+  quizId    String
+  quiz      Quiz              @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  studentId String
+  student   Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  grade     Int?
+  createdAt DateTime          @default(now())
+  questions StudentQuestion[]
+}
+
+// Teacher table
+model Teacher {
+  id          String    @id @default(uuid())
+  firstname   String    @db.VarChar(40)
+  lastname    String    @db.VarChar(70)
+  birthdate   DateTime? @db.Date
+  email       String    @unique @db.VarChar(255)
+  school      String    @db.VarChar(255)
+  gender      Gender
+  picture     String?   @db.VarChar(255)
+  phonenumber String    @db.VarChar(15)
+  location    String    @db.VarChar(255)
+  password    String
+}
+
+// Weekdays table
+model Weekdays {
+  id     String   @id @default(uuid())
+  SA     Boolean?
+  SU     Boolean?
+  MO     Boolean?
+  TU     Boolean?
+  WE     Boolean?
+  TH     Boolean?
+  FR     Boolean?
+  groups Group[]
+}
+
+enum Status {
+  Puplish
+  Hidden
+}
+
+enum Gender {
+  Male
+  Female
+}
+
+enum TermStatus {
+  Open
+  Close
+}
+
+enum QuestionType {
+  Mcq
+  YesOrNo
+}
