@@ -2,6 +2,8 @@
 
 It is system for teachers who wants manage lessons , students' groups, quizes.
 
+![Alt text](https://i.ibb.co/xhHL2FZ/Screenshot-8-5-2024-11536-localhost.jpg)
+
 ## User Types
 
 -   Teacher
