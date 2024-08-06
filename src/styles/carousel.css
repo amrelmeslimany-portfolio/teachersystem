@@ -1,0 +1,30 @@
+.swiper-button-next,
+.swiper-button-prev {
+    height: 100%;
+    width: 30px;
+    top: 22px;
+    transition: all 0.2s;
+    opacity: 1;
+    padding-inline: 5px;
+}
+
+.swiper-button-disabled {
+    opacity: 0 !important;
+}
+
+.swiper-button-next {
+    background: linear-gradient(90deg, white 55%, #ffffff27);
+    left: -1px !important;
+    justify-content: flex-end;
+}
+.swiper-button-prev {
+    background: linear-gradient(90deg, #ffffff27, white 55%);
+    right: -1px !important;
+    justify-content: flex-start;
+}
+
+.swiper-button-prev:after,
+.swiper-button-next:after {
+    font-size: 15px;
+    color: #121481;
+}
