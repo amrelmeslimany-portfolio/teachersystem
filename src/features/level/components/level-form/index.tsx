@@ -12,22 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ALLOWED_IMAGES, LevelSchema } from "@/schema/level";
+import { LevelSchema } from "@/schema/level";
 import { LevelOnlyType } from "@/interfaces/level";
-import Image from "next/image";
-
-// Import React FilePond
-import { FilePond, registerPlugin } from "react-filepond";
-import ReviewPlugin from "filepond-plugin-image-preview";
-import ImagTypePlugin from "filepond-plugin-file-validate-type";
-// Import FilePond styles
-import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css";
-import "filepond/dist/filepond.css";
 import { useAddLevelMutation, useUpdateLevelMutation } from "../../level-api";
 import { Routes } from "@/lib/routes";
 import { errorHandling } from "@/lib/error";
-
-registerPlugin(ReviewPlugin, ImagTypePlugin);
+import UploadImage from "@/components/shared/upload-image";
 
 export type LevelSchemaType = z.infer<typeof LevelSchema>;
 
@@ -58,7 +48,6 @@ const LevelForm = ({ level }: Props) => {
         try {
             if (level) await requestUpdate({ id: level.id, level: formdata }).unwrap();
             else await requestAdd(formdata).unwrap();
-
             toast({ title: `تم الحفظ بنجاح`, className: "bg-green-700 text-white py-4" });
             router.push(Routes.teacher.levels.home);
         } catch (error: any) {
@@ -98,26 +87,12 @@ const LevelForm = ({ level }: Props) => {
                     />
                 </div>
                 <div className="space-y-4">
-                    <FormField
-                        disabled={isLoading}
-                        control={form.control}
+                    <UploadImage
+                        controller={form.control}
+                        isLoading={isLoading}
+                        label="الغلاف"
                         name="cover"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>الغلاف</FormLabel>
-                                <FilePond
-                                    credits={false}
-                                    maxFiles={1}
-                                    acceptedFileTypes={ALLOWED_IMAGES}
-                                    allowMultiple={false}
-                                    onupdatefiles={(files) => field.onChange(files.map((item) => item.file))}
-                                    labelIdle="قم باختيار او سحب صورة غلاف"
-                                    name="cover"
-                                />
-                                <FormMessage />
-                                {level?.cover && <Image src={level.cover} alt={level.title} width={100} height={100} />}
-                            </FormItem>
-                        )}
+                        reviewURL={level?.cover}
                     />
                 </div>
 

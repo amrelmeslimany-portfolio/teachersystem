@@ -14,9 +14,8 @@ const GroupsFilter = () => {
     const pathname = usePathname();
     const { replace } = useRouter();
     const searchParams = useSearchParams();
-    const [selected, setSelected] = React.useState<string[]>(
-        searchParams.has("levelId") ? JSON.parse(searchParams.get("levelId")!).in : []
-    );
+    const initalState = searchParams.has("levelId") ? JSON.parse(searchParams.get("levelId")!).in : [];
+    const [selected, setSelected] = React.useState<string[]>(initalState);
 
     const onOpenedChange = useCallback(
         (checked: boolean, key: string) => {

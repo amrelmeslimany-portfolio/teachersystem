@@ -30,7 +30,7 @@ const TermList = () => {
             {isError && <Error error={(error as IError).data.message} />}
             {!isFetching && data?.data.length == 0 && <Lottie animationData={EmptyImg} className="w-48 mx-auto h-48" />}
             {!isFetching && data && data.data.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                     {data?.data.map((item) => (
                         <TermItem key={item.id} {...item} />
                     ))}

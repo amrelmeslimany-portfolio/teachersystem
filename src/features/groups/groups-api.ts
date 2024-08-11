@@ -1,4 +1,4 @@
-import { IGetGroup } from "@/interfaces/groups";
+import { IGetGroup, IGroupDetails } from "@/interfaces/groups";
 import { IOkResponse } from "@/interfaces/shared";
 import { emptySplitApi } from "@/redux/api-inject";
 
@@ -12,7 +12,7 @@ const groupsApi = emptySplitApi.injectEndpoints({
             providesTags: ["Groups"],
         }),
 
-        oneGroup: build.query<any, void>({
+        oneGroup: build.query<IOkResponse<IGroupDetails>, void>({
             query: (id) => `teacher/groups/${id}`,
             providesTags: ["Groups"],
         }),

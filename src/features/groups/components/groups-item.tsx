@@ -12,6 +12,7 @@ import SegmentTitle from "@/features/term/components/segment-title";
 import { format, getHours, getMinutes } from "date-fns";
 import { DATE_SETTINGS } from "@/lib/constants";
 import LevelCounter from "@/features/level/components/counter";
+import TimeCards from "./time-cards";
 
 const GroupItem = ({ _count, appointTime, cover, id, level, title }: IGetGroup) => {
     return (
@@ -33,17 +34,7 @@ const GroupItem = ({ _count, appointTime, cover, id, level, title }: IGetGroup) 
 
             <CardContent className="p-4 border-t">
                 <SegmentTitle label="الموعد">
-                    <div className="grid grid-cols-3 gap-2">
-                        <span className="bg-white p-2 rounded-md text-lg font-medium text-center">
-                            {format(appointTime, "hh", DATE_SETTINGS)}
-                        </span>
-                        <span className="bg-white p-2 rounded-md text-lg font-medium text-center">
-                            {format(appointTime, "mm", DATE_SETTINGS)}
-                        </span>
-                        <span className="bg-white p-2 rounded-md uppercase text-lg font-medium text-center">
-                            {format(appointTime, "aaa", DATE_SETTINGS)}
-                        </span>
-                    </div>
+                    <TimeCards appointTime={appointTime} />
                 </SegmentTitle>
             </CardContent>
             <LinkActionsFooter

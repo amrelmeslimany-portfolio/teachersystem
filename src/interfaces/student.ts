@@ -9,6 +9,8 @@ export interface IStudent extends IUser {
     role: Users;
 }
 
+export type StudentGetType = Pick<IStudent, "firstname" | "fathername" | "picture" | "id">;
+
 export interface IStates {
     units: number;
     lessons: number;

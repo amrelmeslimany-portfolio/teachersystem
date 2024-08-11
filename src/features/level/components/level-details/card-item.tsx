@@ -4,7 +4,7 @@ import Image from "next/image";
 import React from "react";
 import DefaultImg from "@/public/imgs/default.png";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, imgSrc } from "@/lib/utils";
 import { AppColors } from "@/lib/theme";
 import { QuizStatus } from "@/interfaces/quizzes";
 
@@ -20,7 +20,7 @@ const CardItem = ({ cover, id, title, href, status, isImage = true, isUser = fal
                     >
                         <Image
                             draggable={false}
-                            src={cover || DefaultImg}
+                            src={imgSrc(cover, DefaultImg)}
                             alt="المرحله"
                             width={150}
                             height={150}

@@ -1,6 +1,5 @@
 import ProtectWrapper from "@/features/auth/components/protect-routes";
-
-import WeekdaysDetails from "@/features/weekdays/components/details";
+import GroupDetails from "@/features/groups/components/details";
 import { ADMIN_TITLE } from "@/lib/constants";
 import { Users } from "@/lib/enums";
 import { Metadata } from "next";
@@ -14,7 +13,7 @@ export const metadata: Metadata = {
 const Page = () => {
     return (
         <ProtectWrapper role={Users.TEACHER}>
-            <WeekdaysDetails />
+            <GroupDetails />
         </ProtectWrapper>
     );
 };

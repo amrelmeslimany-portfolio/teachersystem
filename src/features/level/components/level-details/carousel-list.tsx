@@ -53,9 +53,9 @@ export function CarouselList({ label, className, list, href }: Props) {
                 <div className="text-center">
                     <Lottie animationData={EmptyImg} className="h-28 w-28 mx-auto" />
                     <p className="text-sm mt-2">
-                        لا يوجد مجموعات,
+                        لا يوجد ,
                         <Link href={href} className="text-primary hover:underline">
-                            الذهاب للمجموعات
+                            الذهاب الي {label}
                         </Link>
                     </p>
                 </div>

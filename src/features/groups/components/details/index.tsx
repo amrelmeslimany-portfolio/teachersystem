@@ -2,72 +2,123 @@
 
 import { useParams } from "next/navigation";
 import React from "react";
-
 import { BreadcrumbItemProp, GlobalBreadcrumb } from "@/components/shared/global-breadcrubm";
-import { Status, Users } from "@/lib/enums";
+import { Users } from "@/lib/enums";
 import Lottie from "lottie-react";
 import LoadingLottie from "@/public/imgs/lottie/loader.json";
 import Error from "@/components/ui/error";
-import { IError } from "@/interfaces/shared";
 import { Routes } from "@/lib/routes";
-import { cn, statusToAr } from "@/lib/utils";
-import { AppColors } from "@/lib/theme";
-import { CalendarIcon, Flame, SquareStack } from "lucide-react";
-import Link from "next/link";
-import ListItemIcon from "@/components/ui/list-item-icon";
-
-import { Separator } from "@/components/ui/separator";
-import { format } from "date-fns";
-import { arEG } from "date-fns/locale";
-
+import DefaultImg from "@/public/imgs/default.png";
 import Head from "next/head";
-import { useOneWeekdaysQuery } from "../../weekdays-api";
-import WeekdaysActions from "../weekdays-actions";
-import DetailsSide from "./aside";
-import WeekdaysCheckedTabel, { OnlyDaysType } from "../weekdays-checked-tabel";
+import Image from "next/image";
+import SegmentTitle from "@/features/term/components/segment-title";
+import { useOneGroupQuery } from "../../groups-api";
+import GroupsActions from "../groups-actions";
+import { imgSrc } from "@/lib/utils";
 import { CarouselList } from "@/features/level/components/level-details/carousel-list";
 import { CardItemProps } from "@/features/level/components/level-details/card-item";
+import WeekdaysCheckedTabel from "@/features/weekdays/components/weekdays-checked-tabel";
+import Link from "next/link";
+import TimeCards from "../time-cards";
+import { CardContent } from "@/components/ui/card";
+import { format, getHours, getTime } from "date-fns";
+import DetailsSide from "./aside";
 
 const breadcrumbs: BreadcrumbItemProp[] = [
     {
-        title: "الجداول الزمنية",
-        href: Routes.teacher.weekdays.home,
+        title: "المجموعات الطلابيه",
+        href: Routes.teacher.groups.home,
     },
 ];
 
-const WeekdaysDetails = () => {
+const GroupDetails = () => {
     const { id } = useParams();
-    const { data, isFetching, error } = useOneWeekdaysQuery(id as any);
+    const { data, isFetching, error } = useOneGroupQuery(id as any);
 
     if (isFetching) return <Lottie animationData={LoadingLottie} className="w-14 h-14 mx-auto my-4" />;
 
-    if (!data || error) return <Error error="غير موجود هذا الجدول" />;
+    if (!data || error) return <Error error="غير موجود هذة المجموعة" />;
+
+    const { data: group } = data;
+
+    console.log(group);
 
     return (
         <div className="container">
-            <GlobalBreadcrumb type={Users.TEACHER} items={breadcrumbs} current="تفصايل الجدول" />
+            <Head>
+                <title>{group.title}</title>
+            </Head>
+            <GlobalBreadcrumb type={Users.TEACHER} items={breadcrumbs} current={group.title} />
             <div className="flex md:flex-row flex-col gap-14">
-                <div className="flex-grow">
-                    <WeekdaysActions title={id as string} isBack id={id as string} />
-
-                    <Separator className="mt-4 bg-gray-100 dark:bg-gray-900" />
-
-                    <div className="grid grid-cols-7 my-5 gap-4">
-                        <WeekdaysCheckedTabel {...(data.data as OnlyDaysType)} />
+                <div className="max-w-full flex-grow md:w-[70%]">
+                    <div className="flex gap-2 justify-between">
+                        <h3 className="text-2xl font-bold">{group.title}</h3>
+                        <GroupsActions title={group.title} isBack id={id as string} />
                     </div>
 
+                    <div className="w-full h-[500px]">
+                        <Image
+                            src={imgSrc(group.cover, DefaultImg)}
+                            alt={group.title}
+                            width={500}
+                            priority
+                            height={500}
+                            className="mt-4 w-full h-full object-cover"
+                        />
+                    </div>
+                    <SegmentTitle label="الوصف" className="my-4">
+                        {group.description}
+                    </SegmentTitle>
+                    <SegmentTitle
+                        label="الجدول الزمني"
+                        href={Routes.teacher.weekdays.home + `/${group.weekdays.id}`}
+                        className="my-4"
+                    >
+                        <div className="flex gap-4 items-center flex-wrap">
+                            <WeekdaysCheckedTabel className="flex-1" {...group.weekdays} />
+                        </div>
+                    </SegmentTitle>
+                    <SegmentTitle label="الموعد" className="my-4 ">
+                        <TimeCards appointTime={group.appointTime} />
+                    </SegmentTitle>
+                    <SegmentTitle label="المده" className="my-4  ">
+                        <div className="grid grid-cols-2 gap-2 ">
+                            <CardContent className="text-center p-2 shadow rounded-lg">
+                                <p className="text-xl font-medium">{group.duration.split(":")[0]}</p>
+                                <span className="text-gray-400 text-xs block ">ساعه</span>
+                            </CardContent>
+                            <CardContent className="text-center p-2 shadow rounded-lg">
+                                <p className="text-xl font-medium">{group.duration.split(":")[1]}</p>
+                                <span className="text-gray-400 text-xs block ">دقيقة</span>
+                            </CardContent>
+                        </div>
+                    </SegmentTitle>
+
                     <CarouselList
-                        href={Routes.teacher.groups.home}
-                        label="المجموعات"
-                        list={data.data.groups.map(
-                            (item) => ({ ...item, href: Routes.teacher.groups.home } as CardItemProps)
+                        label="الطلاب"
+                        className="mb-4 justify-start"
+                        list={group.students.map(
+                            (item) =>
+                                ({
+                                    id: item.id,
+                                    cover: item.picture,
+                                    title: `${item.firstname} ${item.fathername}`,
+                                    href: Routes.teacher.students.home,
+                                    isUser: true,
+                                } as CardItemProps)
                         )}
+                        href={Routes.teacher.students.home}
                     />
                 </div>
-                <DetailsSide _count={data.data._count} />
+                <DetailsSide
+                    createdAt={group.createdAt}
+                    updatedAt={group.updatedAt}
+                    level={group.level}
+                    _count={group._count}
+                />
             </div>
         </div>
     );
 };
 
-export default WeekdaysDetails;
+export default GroupDetails;

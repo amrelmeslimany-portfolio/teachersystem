@@ -1,24 +1,14 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import React, { useMemo } from "react";
+import React from "react";
 import { BreadcrumbItemProp, GlobalBreadcrumb } from "@/components/shared/global-breadcrubm";
-import { Status, Users } from "@/lib/enums";
+import { Users } from "@/lib/enums";
 import Lottie from "lottie-react";
 import LoadingLottie from "@/public/imgs/lottie/loader.json";
 import Error from "@/components/ui/error";
-import { IError } from "@/interfaces/shared";
 import { Routes } from "@/lib/routes";
-import { cn, statusToAr } from "@/lib/utils";
-import { AppColors } from "@/lib/theme";
-import { CalendarIcon, Flame, SquareStack } from "lucide-react";
-import Link from "next/link";
-import ListItemIcon from "@/components/ui/list-item-icon";
 import DefaultImg from "@/public/imgs/default.png";
-
-import { Separator } from "@/components/ui/separator";
-import { format } from "date-fns";
-import { arEG } from "date-fns/locale";
 
 import Head from "next/head";
 import { useGetLevelQuery } from "../../level-api";
@@ -28,6 +18,7 @@ import SegmentTitle from "@/features/term/components/segment-title";
 import DetailsSide from "./details-side";
 import { CarouselList } from "./carousel-list";
 import { CardItemProps } from "./card-item";
+import { imgSrc } from "@/lib/utils";
 
 const breadcrumbs: BreadcrumbItemProp[] = [
     {
@@ -59,7 +50,7 @@ const LevelDetails = () => {
 
                     <div className="w-full h-[500px]">
                         <Image
-                            src={data.data.cover || DefaultImg}
+                            src={imgSrc(data.data.cover, DefaultImg)}
                             alt={data.data.title}
                             width={500}
                             priority

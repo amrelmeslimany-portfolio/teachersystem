@@ -1,6 +1,6 @@
 import { QuizStatus } from "./quizzes";
 import { IGet, IGetCover } from "./shared";
-import { IStudent } from "./student";
+import { StudentGetType } from "./student";
 
 export interface IGetLevel extends IGetCover {
     description: string;
@@ -16,7 +16,7 @@ export interface IGetLevelDetails extends IGetCover {
     groups: IGetCover[];
     note: IGet[];
     quizes: QuizType[];
-    students: Pick<IStudent, "firstname" | "fathername" | "picture" | "id">[];
+    students: StudentGetType[];
     terms: IGet[];
     units: any[];
     _count: { groups: number; note: number; quizes: number; students: number; units: number };

@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn, imgSrc } from "@/lib/utils";
 import Image from "next/image";
 import React, { ReactNode } from "react";
 import DefaultImg from "@/public/imgs/default.png";
@@ -13,7 +13,7 @@ const CardImage = ({ src, className, content }: Props) => {
     return (
         <div className={cn(["relative  rounded-lg bg-primary/5 overflow-hidden", className])}>
             <Image
-                src={src || DefaultImg}
+                src={imgSrc(src, DefaultImg)}
                 alt="المرحله"
                 width={500}
                 height={500}

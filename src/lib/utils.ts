@@ -5,6 +5,7 @@ import MaleImg from "../../public/imgs/male-picture.webp";
 import FemaleImg from "../../public/imgs/female-picture.webp";
 import { ReadonlyURLSearchParams } from "next/navigation";
 import { ChangeEvent } from "react";
+import { StaticImageData } from "next/image";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -27,3 +28,9 @@ export const updateQuery = (
     else params.delete(query.key);
     return params.toString();
 };
+
+export const padZero = (value: number): string => {
+    return value < 10 ? `0${value}` : value.toString();
+};
+
+export const imgSrc = (src: string | null, defaultUrl?: any) => (src && src != "null" ? src : defaultUrl);

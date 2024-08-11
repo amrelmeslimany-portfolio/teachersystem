@@ -99,6 +99,10 @@
     background-color: #f3f3f9 !important;
 }
 
+.dark .filepond--panel-root {
+    background-color: #121217 !important;
+}
+
 .filepond--root,
 .filepond--root .filepond--drop-label {
     height: 220px !important;

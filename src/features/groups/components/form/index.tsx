@@ -13,43 +13,63 @@ import { Button } from "@/components/ui/button";
 // Import React FilePond
 import { Routes } from "@/lib/routes";
 import { errorHandling } from "@/lib/error";
-import { WeekdaysSchema } from "@/schema/weekdays";
-import { IGetWeekdays } from "@/interfaces/weekdays";
-import { useAddWeekdaysMutation, useUpdateWeekdaysMutation } from "../../weekdays-api";
-import { WEEKDAYS_TRANSLATION } from "@/lib/constants";
-import { Checkbox } from "@/components/ui/checkbox";
+import { IGetGroupOnly } from "@/interfaces/groups";
+import { GroupSchema } from "@/schema/group";
+import InputController from "@/components/ui/input-controller";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import UploadImage from "@/components/shared/upload-image";
+import { useAddGroupsMutation, useUpdateGroupsMutation } from "../../groups-api";
+import { format, getTime } from "date-fns";
+import SelectLevel from "@/features/term/components/term-form/select-level";
+import SelectWeekdays from "./weekdays-select";
+import { padZero } from "@/lib/utils";
 
-export type WeekdaysSchemaType = z.infer<typeof WeekdaysSchema>;
+export type GroupSchemaType = z.infer<typeof GroupSchema>;
 
-type Props = { weekdays?: IGetWeekdays };
+type Props = { group?: IGetGroupOnly };
 
-const WeekdaysForm = ({ weekdays }: Props) => {
-    const [requestAdd, { isLoading }] = useAddWeekdaysMutation();
-    const [requestUpdate, { isLoading: isUpdateLoading }] = useUpdateWeekdaysMutation();
+const GroupForm = ({ group }: Props) => {
+    const [requestAdd, { isLoading }] = useAddGroupsMutation();
+    const [requestUpdate, { isLoading: isUpdateLoading }] = useUpdateGroupsMutation();
 
     const router = useRouter();
     const { toast } = useToast();
 
-    const form = useForm<WeekdaysSchemaType>({
-        resolver: zodResolver(WeekdaysSchema),
+    const form = useForm<GroupSchemaType>({
+        resolver: zodResolver(GroupSchema),
         defaultValues: {
-            FR: weekdays?.FR || undefined,
-            MO: weekdays?.MO || undefined,
-            SA: weekdays?.SA || undefined,
-            SU: weekdays?.SU || undefined,
-            TH: weekdays?.TH || undefined,
-            TU: weekdays?.TU || undefined,
-            WE: weekdays?.WE || undefined,
+            title: group?.title || "",
+            description: group?.description || "",
+            cover: null,
+            levelId: group?.level.id || "",
+            weekdaysId: group?.weekdays.id || "",
+            duration: {
+                hour: group?.duration ? group.duration.split(":")[0] : "0",
+                minute: group?.duration ? group.duration.split(":")[1] : "0",
+            },
+            appointTime: group?.appointTime ? format(group?.appointTime, "HH:mm") : "",
         },
     });
 
-    const onSubmit = async (values: WeekdaysSchemaType) => {
+    const onSubmit = async ({ duration, ...values }: GroupSchemaType) => {
+        const formdata = new FormData();
+        Object.entries(values).forEach(([key, value]) => {
+            if (!value) return;
+            if (key === "cover" && value) formdata.append(key, value[0]);
+            else formdata.append(key, value);
+        });
+
+        if (duration && duration.hour != "0" && duration.minute != "0") {
+            formdata.append("duration", `${padZero(+duration?.hour)}:${padZero(+duration?.minute)}`);
+        }
+
         try {
-            if (weekdays) await requestUpdate({ id: weekdays.id, weekdays: values }).unwrap();
-            else await requestAdd(values).unwrap();
+            if (group) await requestUpdate({ id: group.id, body: formdata }).unwrap();
+            else await requestAdd(formdata).unwrap();
 
             toast({ title: `تم الحفظ بنجاح`, className: "bg-green-700 text-white py-4" });
-            router.push(Routes.teacher.weekdays.home);
+            router.push(Routes.teacher.groups.home);
         } catch (error: any) {
             errorHandling(error, toast, form);
         }
@@ -57,43 +77,119 @@ const WeekdaysForm = ({ weekdays }: Props) => {
 
     return (
         <Form {...form}>
-            <form encType="multipart/form-data" onSubmit={form.handleSubmit(onSubmit)} className="flex flex-wrap gap-4">
-                {Object.entries(WEEKDAYS_TRANSLATION).map(([key, value]) => {
-                    return (
-                        <FormField
-                            key={key}
-                            control={form.control}
-                            name={key as any}
-                            render={({ field }) => (
-                                <FormItem className="flex-1">
-                                    <div className="mb-4 flex items-center">
-                                        <FormControl className="me-2 ">
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
+            <form
+                encType="multipart/form-data"
+                onSubmit={form.handleSubmit(onSubmit)}
+                className=" grid grid-cols-1 lg:grid-cols-2 gap-5"
+            >
+                <div className="space-y-4 ">
+                    <FormField
+                        disabled={isLoading}
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                            <InputController label="الاسم" input={<Input placeholder="ادخل الاسم" {...field} />} />
+                        )}
+                    />
+                    <FormField
+                        disabled={isLoading}
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>الوصف</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="ادخل وصف" className="h-32 resize-none" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <SelectLevel controler={form.control} />
+                    <SelectWeekdays controler={form.control} />
+                </div>
+                <div className="space-y-4">
+                    <FormField
+                        disabled={isLoading}
+                        control={form.control}
+                        name="appointTime"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>الموعد</FormLabel>
+                                <FormControl dir="rtl">
+                                    <Input dir="rtl" lang="ar" type="time" className="justify-end" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormItem>
+                        <FormLabel>المده</FormLabel>
+                        <div className="flex items-center gap-2">
+                            <FormField
+                                disabled={isLoading}
+                                control={form.control}
+                                name="duration.hour"
+                                render={({ field }) => (
+                                    <>
+                                        <FormItem className="border rounded-md flex gap-2 items-center py-2.5 px-3 flex-1">
+                                            <Input
+                                                className="focus-visible:ring-transparent rounded-none border-none p-0 h-auto"
+                                                type="number"
+                                                min={0}
+                                                placeholder="00"
                                                 {...field}
                                             />
-                                        </FormControl>
-                                        <FormLabel className="font-normal align-top">{value}</FormLabel>
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    );
-                })}
+                                            <span className="!m-0 text-xs text-gray-400">ساعة</span>
+                                        </FormItem>
+                                        <FormMessage />
+                                    </>
+                                )}
+                            />
+                            <FormField
+                                disabled={isLoading}
+                                control={form.control}
+                                name="duration.minute"
+                                render={({ field }) => (
+                                    <>
+                                        <FormItem className="border rounded-md flex gap-2 items-center py-2.5 px-3 flex-1">
+                                            <Input
+                                                className="focus-visible:ring-transparent rounded-none border-none p-0 h-auto"
+                                                type="number"
+                                                placeholder="00"
+                                                max={99}
+                                                min={0}
+                                                {...field}
+                                            />
+                                            <span className="!m-0 text-xs text-gray-400">دقيقة</span>
+                                        </FormItem>
+                                        <FormMessage />
+                                    </>
+                                )}
+                            />
+                        </div>
+                    </FormItem>
 
-                <div className="w-full  flex flex-col md:flex-row gap-2">
+                    <UploadImage
+                        controller={form.control}
+                        isLoading={isLoading}
+                        label="الغلاف"
+                        name="cover"
+                        reviewURL={group?.cover && group.cover !== "null" ? group.cover : null}
+                    />
+                </div>
+
+                <div className="w-full lg:col-span-2 flex flex-col md:flex-row gap-2">
                     <Button type="submit" className="flex-grow" disabled={isLoading}>
                         {(isLoading || isUpdateLoading) && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                        {weekdays ? "حفظ التعديلات" : "اضافة جدول"}
+                        {group ? "حفظ التعديلات" : "اضافة مجموعة"}
                     </Button>
-                    {!weekdays && (
+                    {!group && (
                         <Button
                             type="reset"
                             variant="outline"
                             className="flex-shrink-0 md:w-48"
-                            onClick={() => form.reset()}
+                            onClick={() => form.reset({ cover: null })}
                         >
                             تفريغ
                         </Button>
@@ -104,4 +200,4 @@ const WeekdaysForm = ({ weekdays }: Props) => {
     );
 };
 
-export default React.memo(WeekdaysForm);
+export default React.memo(GroupForm);

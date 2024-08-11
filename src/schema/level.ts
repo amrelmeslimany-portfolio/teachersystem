@@ -1,7 +1,5 @@
+import { ALLOWED_IMAGES, IMAGE_MAXSIZE_MEGA } from "@/lib/constants";
 import { z } from "zod";
-
-export const IMAGE_MAXSIZE_MEGA = 800000;
-export const ALLOWED_IMAGES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
 
 export const LevelSchema = z.object({
     title: z.string({ message: "يجب ادخال العنوان" }).min(5, "يجب الا تقل الحروف عن 5"),
